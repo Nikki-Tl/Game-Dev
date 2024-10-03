@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 
@@ -10,6 +11,7 @@ public class MoveSprite : MonoBehaviour
     public float playerSpeed;
     public float playerJump;
     private bool grounded = true;
+    private int doubleJump = 0;
 
 
     [SerializeField] Rigidbody2D myRigid;
@@ -36,9 +38,10 @@ public class MoveSprite : MonoBehaviour
         }
 
         // jumping if character is grounded
-        if (Input.GetKey("w") && grounded==true)
+        if (Input.GetKey("w") && grounded==true && doubleJump < 2)
         {
             myRigid.velocity = new Vector2(myRigid.velocity.x, playerJump);
+            doubleJump = doubleJump + 1;
         }
 
 
@@ -52,7 +55,10 @@ public class MoveSprite : MonoBehaviour
         if (collision.gameObject.CompareTag("Floor"))
         {
             grounded = true;
-            Debug.Log("true");
+            
+
+            doubleJump = 0;
+           
         }
        
     }
@@ -62,8 +68,7 @@ public class MoveSprite : MonoBehaviour
         if (collision.gameObject.CompareTag("Floor"))
         {
             grounded = false;
-            Debug.Log("false");
+            
         }
     }
-
 }
