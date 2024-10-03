@@ -1,0 +1,69 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+
+
+public class MoveSprite : MonoBehaviour 
+{
+
+    public float playerSpeed;
+    public float playerJump;
+    private bool grounded = true;
+
+
+    [SerializeField] Rigidbody2D myRigid;
+
+    void Start()
+    {
+        myRigid = this.GetComponent<Rigidbody2D>();
+    }
+
+
+    void Update() 
+    {
+        // A & D Horizontal movement with "moveX"
+        float moveX = Input.GetAxis("Horizontal");
+
+       
+        if (Input.GetKey("d"))
+        {
+            myRigid.velocity = new Vector2(moveX * playerSpeed, myRigid.velocity.y);
+        }
+        if (Input.GetKey("a"))
+        {
+            myRigid.velocity = new Vector2(moveX * playerSpeed, myRigid.velocity.y);
+        }
+
+        // jumping if character is grounded
+        if (Input.GetKey("w") && grounded==true)
+        {
+            myRigid.velocity = new Vector2(myRigid.velocity.x, playerJump);
+        }
+
+
+    }
+
+
+    // collision checks
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        // checking if character is grounded on floor
+        if (collision.gameObject.CompareTag("Floor"))
+        {
+            grounded = true;
+            Debug.Log("true");
+        }
+       
+    }
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        // checking if character leaves floor 
+        if (collision.gameObject.CompareTag("Floor"))
+        {
+            grounded = false;
+            Debug.Log("false");
+        }
+    }
+
+}
