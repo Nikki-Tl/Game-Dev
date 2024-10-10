@@ -50,6 +50,7 @@ public class MoveSprite : MonoBehaviour
         // ref: https://docs.unity3d.com/Manual/class-Quaternion.html
         //      https://docs.unity3d.com/ScriptReference/Quaternion.Euler.html
         //      https://docs.unity3d.com/ScriptReference/Vector3.Slerp.html
+        //      https://www.youtube.com/watch?v=hd1QzLf4ZH8
         // grabs the rotation from direction player is going and applying a tilt (hence number after)
         float zRotation = Input.GetAxis("Horizontal") * 10;
         // from my understanding: quaternion is unitys way of rotating an obeject in 3D.
@@ -62,18 +63,16 @@ public class MoveSprite : MonoBehaviour
         animate.SetFloat("speed", Mathf.Abs(moveX));
 
         // finding out the mouse position 
-        // ref: https://www.youtube.com/watch?v=_XdqA3xbP2A
         Vector3 mousePosition = Input.mousePosition;
-        mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
-        Vector2 direction = new Vector2(mousePosition.x - transform.position.x, mousePosition.y - transform.position.y);
+        // taking that mouse positions x and adjusting it so the camera is centered (had to adjust for ~800 too, i think this is due to where i placed my scene)
+        mousePosition.x = mousePosition.x - Camera.main.transform.position.x + 3.74f - 775f;
 
-
-        // flipping player sprite dending on direction 
-        if (direction.x > 0)
+        //// flipping player sprite dending on direction 
+        if (mousePosition.x > myRigid.position.x)
         {
             gameObject.transform.localScale = new Vector3(1, 1, 1);
         }
-        if (direction.x < 0)
+        if (mousePosition.x < myRigid.position.x)
         {
             gameObject.transform.localScale = new Vector3(-1, 1, 1);
         }
