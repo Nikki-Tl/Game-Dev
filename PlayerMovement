@@ -59,10 +59,6 @@ public class MoveSprite : MonoBehaviour
             gameObject.transform.localScale = new Vector3(-1, 1, 1);
         }
 
-
-        //animator.SetFloat("speed", Mathf.Abs(moveX));
-
-
         // lock A & D movement when wall jumping
         if (!wallJumpCooldown)
         {
@@ -86,38 +82,43 @@ public class MoveSprite : MonoBehaviour
             StartCoroutine(doubleJumpEnum());
         }
         // double jumping
-        if (Input.GetKey("w") && !grounded && (doubleJump < 2) && !doubleJumpCooldown)
+        if (Input.GetKey("w") && !grounded && (doubleJump < 2) && !doubleJumpCooldown && !wallJumpCooldown)
         {
             myRigid.velocity = new Vector2(myRigid.velocity.x, playerJump);
             doubleJump = doubleJump + 1;
+            UnityEngine.Debug.Log(doubleJump);
 
         }
 
         // Bug Fix: 
         // due to moveX having the ability of being 0, it would cause the negative/backwards movement...
         // ...to be 0 which would cause the player to just go up infinatly, this makes sure moveX cannot display 0 
-        if (moveX < 0 && !canWallJump)
+        if (moveX < 0 && !canWallJump && !wallJumpCooldown)
         {
             wallJumpNegMove = -1;
         }
-        if (moveX > 0 && !canWallJump)
+        if (moveX > 0 && !canWallJump && !wallJumpCooldown)
         {
             wallJumpNegMove = 1;
         }
 
 
         // wall jumping
-        if (Input.GetKey("w") && Input.GetKey("a") && !grounded && canWallJump && !wallJumpCooldown)
+        if (Input.GetKey("w") && Input.GetKey("a") && wallJumpNegMove == -1 && !grounded && canWallJump && !wallJumpCooldown)
         {
             myRigid.velocity = new Vector2(-wallJumpNegMove * playerSpeed, playerJump);
+            wallJumpNegMove = -wallJumpNegMove;
+            doubleJump = 1;
             StartCoroutine(wallJumpEnum());
             StartCoroutine(doubleJumpEnum());
             UnityEngine.Debug.Log(wallJumpNegMove);
 
         }
-        if (Input.GetKey("w") && Input.GetKey("d") && !grounded && canWallJump && !wallJumpCooldown)
+        if (Input.GetKey("w") && Input.GetKey("d") && wallJumpNegMove == 1 && !grounded && canWallJump && !wallJumpCooldown)
         {
             myRigid.velocity = new Vector2(-wallJumpNegMove * playerSpeed, playerJump);
+            wallJumpNegMove = -wallJumpNegMove;
+            doubleJump = 1;
             StartCoroutine(wallJumpEnum());
             StartCoroutine(doubleJumpEnum());
             UnityEngine.Debug.Log(wallJumpNegMove);
@@ -126,7 +127,7 @@ public class MoveSprite : MonoBehaviour
         // slide down wall
         else if (!grounded && canWallJump && !wallJumpCooldown)
         {
-            myRigid.velocity = new Vector2(myRigid.velocity.x, -2);
+            myRigid.velocity = new Vector2(myRigid.velocity.x / 5, -2);
         }
 
     }
@@ -167,9 +168,10 @@ public class MoveSprite : MonoBehaviour
     IEnumerator doubleJumpEnum()
     {
         doubleJumpCooldown = true;
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.31f);
         doubleJumpCooldown = false;
     }
+
     // wall jump cooldown timer
     IEnumerator wallJumpEnum()
     {
