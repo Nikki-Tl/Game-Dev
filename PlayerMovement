@@ -26,12 +26,16 @@ public class MoveSprite : MonoBehaviour
     // set rigidBody
     [SerializeField] Rigidbody2D myRigid;
 
+    private Animator animate;
+
     // ---------------------------------------------------------------------------------------------------------------------
 
     void Start()
     {
         // set rigidBody
         myRigid = this.GetComponent<Rigidbody2D>();
+
+        animate = this.GetComponent<Animator>();
     }
 
     // ---------------------------------------------------------------------------------------------------------------------
@@ -41,6 +45,21 @@ public class MoveSprite : MonoBehaviour
 
         // set moveX for direction on x axis
         float moveX = Input.GetAxis("Horizontal");
+
+        // PLAYER MOVEMENT ROTATION
+        // ref: https://docs.unity3d.com/Manual/class-Quaternion.html
+        //      https://docs.unity3d.com/ScriptReference/Quaternion.Euler.html
+        //      https://docs.unity3d.com/ScriptReference/Vector3.Slerp.html
+        // grabs the rotation from direction player is going and applying a tilt (hence number after)
+        float zRotation = Input.GetAxis("Horizontal") * 10;
+        // from my understanding: quaternion is unitys way of rotating an obeject in 3D.
+        //                        a euler is like a Vector3 for rotation? (kind of struggling so will ask in class).
+        //                        slerp allows you to go from one vector position to another in a set amount of time (i understand this as smoothing between frames like in animation).
+        Quaternion player = Quaternion.Euler(0, 0, zRotation);
+        transform.rotation = Quaternion.Slerp(transform.rotation, player, Time.deltaTime * 50);
+
+        // set animation direction
+        animate.SetFloat("speed", Mathf.Abs(moveX));
 
         // finding out the mouse position 
         // ref: https://www.youtube.com/watch?v=_XdqA3xbP2A
@@ -66,6 +85,7 @@ public class MoveSprite : MonoBehaviour
             if (Input.GetKey("d"))
             {
                 myRigid.velocity = new Vector2(moveX * playerSpeed, myRigid.velocity.y);
+                
             }
             if (Input.GetKey("a"))
             {
@@ -80,6 +100,8 @@ public class MoveSprite : MonoBehaviour
             doubleJump = 1;
             // starts cooldown for double jump
             StartCoroutine(doubleJumpEnum());
+            // set animation
+            animate.SetBool("jumping", true);
         }
         // double jumping
         if (Input.GetKey("w") && !grounded && (doubleJump < 2) && !doubleJumpCooldown && !wallJumpCooldown)
@@ -87,6 +109,8 @@ public class MoveSprite : MonoBehaviour
             myRigid.velocity = new Vector2(myRigid.velocity.x, playerJump);
             doubleJump = doubleJump + 1;
             UnityEngine.Debug.Log(doubleJump);
+            // set animation
+            animate.SetBool("jumping", true);
 
         }
 
@@ -112,6 +136,8 @@ public class MoveSprite : MonoBehaviour
             StartCoroutine(wallJumpEnum());
             StartCoroutine(doubleJumpEnum());
             UnityEngine.Debug.Log(wallJumpNegMove);
+            // set animation
+            animate.SetBool("jumping", true);
 
         }
         if (Input.GetKey("w") && Input.GetKey("d") && wallJumpNegMove == 1 && !grounded && canWallJump && !wallJumpCooldown)
@@ -122,6 +148,8 @@ public class MoveSprite : MonoBehaviour
             StartCoroutine(wallJumpEnum());
             StartCoroutine(doubleJumpEnum());
             UnityEngine.Debug.Log(wallJumpNegMove);
+            // set animation
+            animate.SetBool("jumping", true);
 
         }
         // slide down wall
@@ -136,17 +164,27 @@ public class MoveSprite : MonoBehaviour
     // collision checks
     void OnCollisionEnter2D(Collision2D collision)
     {
+
+        if (collision.gameObject.CompareTag("Floor") && collision.gameObject.CompareTag("Wall"))
+        {
+            canWallJump = false;
+        }
+
         // checking if character is grounded on floor
         if (collision.gameObject.CompareTag("Floor"))
         {
             grounded = true;
             doubleJump = 0;
+            // set animation
+            animate.SetBool("jumping", false);
         }
 
         // checking for wall
         if (collision.gameObject.CompareTag("Wall"))
         {
             canWallJump = true;
+            // set animation
+            animate.SetBool("jumping", false);
         }
 
     }
@@ -179,4 +217,5 @@ public class MoveSprite : MonoBehaviour
         yield return new WaitForSeconds(0.3f);
         wallJumpCooldown = false;
     }
+
 }
