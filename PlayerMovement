@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 
+// -------------------------------------------------------------------------------------------------------------------------
 
-
-public class MoveSprite : MonoBehaviour 
+public class MoveSprite : MonoBehaviour
 {
     // base a and d movement
     public float playerSpeed;
@@ -26,18 +26,43 @@ public class MoveSprite : MonoBehaviour
     // set rigidBody
     [SerializeField] Rigidbody2D myRigid;
 
+    // ---------------------------------------------------------------------------------------------------------------------
+
     void Start()
     {
         // set rigidBody
         myRigid = this.GetComponent<Rigidbody2D>();
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------
 
-    void Update() 
+    void Update()
     {
 
         // set moveX for direction on x axis
         float moveX = Input.GetAxis("Horizontal");
+
+        // finding out the mouse position 
+        // ref: https://www.youtube.com/watch?v=_XdqA3xbP2A
+        Vector3 mousePosition = Input.mousePosition;
+        mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+        Vector2 direction = new Vector2(mousePosition.x - transform.position.x, mousePosition.y - transform.position.y);
+
+
+        // flipping player sprite dending on direction 
+        if (direction.x > 0)
+        {
+            gameObject.transform.localScale = new Vector3(1, 1, 1);
+        }
+        if (direction.x < 0)
+        {
+            gameObject.transform.localScale = new Vector3(-1, 1, 1);
+        }
+
+
+        //animator.SetFloat("speed", Mathf.Abs(moveX));
+
+
         // lock A & D movement when wall jumping
         if (!wallJumpCooldown)
         {
@@ -68,26 +93,33 @@ public class MoveSprite : MonoBehaviour
 
         }
 
+        // Bug Fix: 
         // due to moveX having the ability of being 0, it would cause the negative/backwards movement...
         // ...to be 0 which would cause the player to just go up infinatly, this makes sure moveX cannot display 0 
         if (moveX < 0 && !canWallJump)
         {
-            wallJumpNegMove = -1; 
+            wallJumpNegMove = -1;
         }
         if (moveX > 0 && !canWallJump)
         {
             wallJumpNegMove = 1;
         }
-        
+
 
         // wall jumping
-        if (Input.GetKey("w") && !grounded && canWallJump && !wallJumpCooldown)
+        if (Input.GetKey("w") && Input.GetKey("a") && !grounded && canWallJump && !wallJumpCooldown)
         {
             myRigid.velocity = new Vector2(-wallJumpNegMove * playerSpeed, playerJump);
-            doubleJump = 1;
             StartCoroutine(wallJumpEnum());
             StartCoroutine(doubleJumpEnum());
-            wallJumpNegMove = -wallJumpNegMove;
+            UnityEngine.Debug.Log(wallJumpNegMove);
+
+        }
+        if (Input.GetKey("w") && Input.GetKey("d") && !grounded && canWallJump && !wallJumpCooldown)
+        {
+            myRigid.velocity = new Vector2(-wallJumpNegMove * playerSpeed, playerJump);
+            StartCoroutine(wallJumpEnum());
+            StartCoroutine(doubleJumpEnum());
             UnityEngine.Debug.Log(wallJumpNegMove);
 
         }
@@ -99,7 +131,7 @@ public class MoveSprite : MonoBehaviour
 
     }
 
-    
+
     // collision checks
     void OnCollisionEnter2D(Collision2D collision)
     {
@@ -115,7 +147,7 @@ public class MoveSprite : MonoBehaviour
         {
             canWallJump = true;
         }
-       
+
     }
     private void OnCollisionExit2D(Collision2D collision)
     {
@@ -142,7 +174,7 @@ public class MoveSprite : MonoBehaviour
     IEnumerator wallJumpEnum()
     {
         wallJumpCooldown = true;
-        yield return new WaitForSeconds(0.4f);
+        yield return new WaitForSeconds(0.3f);
         wallJumpCooldown = false;
     }
 }
