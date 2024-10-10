@@ -9,8 +9,10 @@ public class MoveSprite : MonoBehaviour
 {
 
     public float playerSpeed;
+
     public float playerJump;
-    private bool grounded = true;
+    private bool grounded;
+    private bool doubleJumpCooldown;
     private int doubleJump = 0;
 
 
@@ -38,10 +40,17 @@ public class MoveSprite : MonoBehaviour
         }
 
         // jumping if character is grounded
-        if (Input.GetKey("w") && grounded==true && doubleJump < 2)
+        if (Input.GetKey("w") && grounded)
         {
             myRigid.velocity = new Vector2(myRigid.velocity.x, playerJump);
+            doubleJump = 1;
+            StartCoroutine(doubleJumpEnum());
+        }
+        if (Input.GetKey("w") && !grounded && (doubleJump < 2) && !doubleJumpCooldown)
+        {
+            myRigid.velocity = new Vector2(myRigid.velocity.x, myRigid.velocity.y + playerJump);
             doubleJump = doubleJump + 1;
+
         }
 
 
@@ -55,10 +64,7 @@ public class MoveSprite : MonoBehaviour
         if (collision.gameObject.CompareTag("Floor"))
         {
             grounded = true;
-            
-
             doubleJump = 0;
-           
         }
        
     }
@@ -70,5 +76,13 @@ public class MoveSprite : MonoBehaviour
             grounded = false;
             
         }
+    }
+
+
+    IEnumerator doubleJumpEnum()
+    {
+        doubleJumpCooldown = true;
+        yield return new WaitForSeconds(0.3f);
+        doubleJumpCooldown = false;
     }
 }
