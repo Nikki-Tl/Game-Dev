@@ -17,6 +17,11 @@ public class MoveSprite : MonoBehaviour
     private bool doubleJumpCooldown;
     private int doubleJump = 0;
 
+    // wall jumping
+    private bool wallJumpCooldown;
+    private bool canWallJump;
+    private int wallJumpNegMove;
+
 
     // set rigidBody
     [SerializeField] Rigidbody2D myRigid;
@@ -30,15 +35,20 @@ public class MoveSprite : MonoBehaviour
 
     void Update() 
     {
-        // A & D Horizontal movement with "moveX"
+        // set moveX for direction on x axis
         float moveX = Input.GetAxis("Horizontal");
-        if (Input.GetKey("d"))
+        // lock A & D movement when wall jumping
+        if (!wallJumpCooldown)
         {
-            myRigid.velocity = new Vector2(moveX * playerSpeed, myRigid.velocity.y);
-        }
-        if (Input.GetKey("a"))
-        {
-            myRigid.velocity = new Vector2(moveX * playerSpeed, myRigid.velocity.y);
+            // A & D Horizontal movement with "moveX"
+            if (Input.GetKey("d"))
+            {
+                myRigid.velocity = new Vector2(moveX * playerSpeed, myRigid.velocity.y);
+            }
+            if (Input.GetKey("a"))
+            {
+                myRigid.velocity = new Vector2(moveX * playerSpeed, myRigid.velocity.y);
+            }
         }
 
         // jumping if character is grounded
@@ -57,6 +67,27 @@ public class MoveSprite : MonoBehaviour
 
         }
 
+        // due to moveX having the ability of being 0, it would cause the negative/backwards movement to be 0 which would cause the player to just go up infinatly, this makes sure moveX cannot display 0 
+        if (moveX < 0)
+        {
+            wallJumpNegMove = -1;
+        }
+        if (moveX > 0)
+        {
+            wallJumpNegMove = 1;
+        }
+        // wall jumping
+        if (Input.GetKey("w") && !grounded && canWallJump && !wallJumpCooldown)
+        {
+            myRigid.velocity = new Vector2(-wallJumpNegMove * playerSpeed, playerJump);
+            StartCoroutine(wallJumpEnum());
+        }
+        // slide down wall
+        //if (canWallJump)
+        //{
+        //    myRigid.velocity = new Vector2(myRigid.velocity.x, -1);
+        //}
+
 
     }
 
@@ -70,6 +101,12 @@ public class MoveSprite : MonoBehaviour
             grounded = true;
             doubleJump = 0;
         }
+
+        // checking for wall
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            canWallJump = true;
+        }
        
     }
     private void OnCollisionExit2D(Collision2D collision)
@@ -78,7 +115,11 @@ public class MoveSprite : MonoBehaviour
         if (collision.gameObject.CompareTag("Floor"))
         {
             grounded = false;
-            
+        }
+        // checking if character leaves wall
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            canWallJump = false;
         }
     }
 
@@ -88,5 +129,12 @@ public class MoveSprite : MonoBehaviour
         doubleJumpCooldown = true;
         yield return new WaitForSeconds(0.3f);
         doubleJumpCooldown = false;
+    }
+    // wall jump cooldown timer
+    IEnumerator wallJumpEnum()
+    {
+        wallJumpCooldown = true;
+        yield return new WaitForSeconds(0.4f);
+        wallJumpCooldown = false;
     }
 }
