@@ -155,6 +155,7 @@ public class MoveSprite : MonoBehaviour
         else if (!grounded && canWallJump && !wallJumpCooldown)
         {
             myRigid.velocity = new Vector2(myRigid.velocity.x / 5, -2);
+            animate.SetFloat("speed", 0);
         }
 
     }
